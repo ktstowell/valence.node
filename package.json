@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/ktstowell/valence.node/issues"
   },
-  "homepage": "https://github.com/ktstowell/valence.node"
+  "homepage": "https://github.com/ktstowell/valence.node",
+  "devDependencies": {
+    "q": "^1.4.1"
+  }
 }
