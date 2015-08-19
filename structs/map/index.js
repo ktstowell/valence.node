@@ -1,6 +1,7 @@
 'use strict';
 
 var q = require('q');
+var Transaction = require('../../transactions');
 
 /***********************************************************************************************************************************************
  *  VALENCE MAP STRUCT
@@ -98,6 +99,7 @@ module.exports = function(spec) {
       .then(function(resolved) {
         // all strategies successfull, write away!
         Store.write(spec).then(function(write) {
+          console.log(write, store);
           def.resolve(write);
         });
       }).catch(function(err) {
@@ -163,16 +165,20 @@ module.exports = function(spec) {
    */
   function write(spec) {
     var def = q.defer();
-
+    
+    console.log('WRITE: ', spec)
     for(var key in spec.state) {
       // Write to key value store
       this.data[key] = spec.state[key];
       // Write to meta map
-      this.meta[key] = spec.options[key];
-      this.meta[key].modified = Date.now();
+      // this.meta[key] = spec.options[key];
+      // this.meta[key].modified = Date.now();
+      // 
+      // I NEED TO DO ERROR HANDLING HERE BUT IT"S LATE
     }
 
-    // generate write response object and resolve it.
+    // Resolve transaction
+    def.resolve((Transaction({struct: Map, type: 'write', data: spec.state, options: spec.options})));
 
     return def.promise;
   }
