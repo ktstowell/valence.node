@@ -1,7 +1,9 @@
 'use strict';
 
 var q = require('q');
-var Transaction = require('../../transactions');
+var Transaction = require('../../transactions')({struct: 'Map'});
+var Store = require('./store');
+var Validation = require('./validation');
 
 /***********************************************************************************************************************************************
  *  VALENCE MAP STRUCT
@@ -9,38 +11,21 @@ var Transaction = require('../../transactions');
  * @description
  */
 module.exports = function(spec) {
-
-  /**
-   * Protected data struct for this map instance.
-   * @type {Object}
-   */
-	var Store = Object.create({read: read, write: write});
-      Store.meta = {};
-      Store.data = {};
-
-  /**
-   * Option handling strategies
-   * @type {Object}
-   */
-  var Strategies = {
-    read: {},
-    write: {
-      readonly: readonly
-    },
-    remove: {}
-  };
+  // Create instances
+  var store = Store();
+  var validation = Validation(store);
 
   /**
    * Map State machine/API
    * @param {[type]} state [description]
    */
-	var Map = function(state) {
-		return {
-			get: function(opts) { return validate(state, opts, 'read').then(function(data) { return get(data); }); },
-			set: function(opts) { return validate(state, opts, 'write').then(function(data) { return set(data); }); },
-			remove: function(opts) { return validate(state, opts, 'remove').then(function(data) { return remove(data); }); }
-		};
-	};
+  var Map = function(state) {
+    return {
+      get: function(opts) { return normalize(state, opts, 'read').then(function(data) { return get(data); }); },
+      set: function(opts) { return normalize(state, opts, 'write').then(function(data) { return set(data); }); },
+      remove: function(opts) { return normalize(state, opts, 'remove').then(function(data) { return remove(data); }); }
+    };
+  };
 
   //
   // MAP STATELESS METHODS
@@ -53,18 +38,18 @@ module.exports = function(spec) {
    * @param  {[type]} opts [description]
    * @return {[type]}      [description]
    */
-	Map.get = function(opts) {
-		return get({}, opts);
-	};
+  Map.get = function(opts) {
+    return get({}, opts);
+  };
 
   /**
    * Proxies remove for whole data set.
    * @param  {[type]} opts [description]
    * @return {[type]}      [description]
    */
-	Map.empty = function(opts) {
-		return remove({}, opts);
-	};
+  Map.empty = function(opts) {
+    return remove({}, opts);
+  };
 
   /**
    * Instance API. *hoisting happens*
@@ -76,7 +61,7 @@ module.exports = function(spec) {
   //------------------------------------------------------------------------------------------//
   // @description
   
-  function get(state, opts) {
+  function get(spec) {
 
   }
 
@@ -87,29 +72,27 @@ module.exports = function(spec) {
    * @param {[type]} spec [description]
    */
   function set(spec) {
-    var def = q.defer(),
-        options = [];
+    var def = q.defer();
 
-    // Process all option strategies to ensure we can write
-    for(var option in spec.options) {
-      options.push(Strategies.write[option](spec));
-    }
-
-    q.all(options)
+    // Determine if objects are writeable
+    validation.write(spec.data)
       .then(function(resolved) {
-        // all strategies successfull, write away!
-        Store.write(spec).then(function(write) {
-          console.log(write, store);
+        // Attempt to write
+        store.write(spec).then(function(write) {
           def.resolve(write);
+        }, function(write) {
+          def.reject(write);
         });
+      }, function(err) {
+        console.log('write reject', err)
       }).catch(function(err) {
-        def.reject(err);
-      });
+        console.log('write catch', err);
+      }).done();
 
     return def.promise;
   }
 
-  function remove(state, opts) {
+  function remove(spec) {
 
   }
 
@@ -117,21 +100,14 @@ module.exports = function(spec) {
   // VALIDATION
   //------------------------------------------------------------------------------------------//
   // @description
-  function validate(state, options, strategy) {
+  function normalize(state, options, strategy) {
     var def = q.defer();
 
     state = state || {};
     options = options || {};
 
-    // remove unsupported options
-    Object.keys(options).filter(function(key) {
-      return !Strategies[strategy].hasOwnProperty(key);
-    }).forEach(function(option) {
-      delete options[option];
-    });
-
     // Resolve failsafe structures
-    def.resolve({state: state, options: options});
+    def.resolve({data: state, options: options});
 
     return def.promise;
   }
@@ -140,8 +116,33 @@ module.exports = function(spec) {
   // STRATEGY METHOS
   //------------------------------------------------------------------------------------------//
   // @description
-  function readonly() {
+  function readonly(spec) {
+    var def = q.defer(),
+        rejected = {},
+        writeable = {};
 
+    // determine if an option can be written
+    for(var key in spec.data) {
+      console.log({
+        key: key,
+        store: {data: Store.data[key], meta: Store.meta[key]}
+      })
+      if(Store.data[key] && (Store.meta[key] && Store.meta[key].options && Store.meta[key].options.readonly)) {
+        rejected[key] = spec.data[key];
+      } else {
+        writeable[key] = spec.data[key];
+      }
+    }
+
+    // Resolve writeable keys
+    def.resolve(writeable);
+
+    // Reject if present
+    if(Object.keys(rejected).length) {
+      def.reject({error: 'The following values are marked as readonly', data: rejected});
+    }
+
+    return def.promise;
   }
 
   //
@@ -165,20 +166,8 @@ module.exports = function(spec) {
    */
   function write(spec) {
     var def = q.defer();
-    
-    console.log('WRITE: ', spec)
-    for(var key in spec.state) {
-      // Write to key value store
-      this.data[key] = spec.state[key];
-      // Write to meta map
-      // this.meta[key] = spec.options[key];
-      // this.meta[key].modified = Date.now();
-      // 
-      // I NEED TO DO ERROR HANDLING HERE BUT IT"S LATE
-    }
 
-    // Resolve transaction
-    def.resolve((Transaction({struct: Map, type: 'write', data: spec.state, options: spec.options})));
+    
 
     return def.promise;
   }
