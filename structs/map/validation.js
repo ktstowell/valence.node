@@ -10,8 +10,8 @@ var q = require('q');
  */
 module.exports = function(store) {
   return {
-    write: require('./validation/write')(store),
-    read: require('./validation/read')(store),
-    remove: require('./validation/remove')(store)
+    writeable: require('./validation/write')(store),
+    readable: require('./validation/read')(store),
+    removeable: require('./validation/remove')(store)
   }
 };

@@ -11,28 +11,30 @@ module.exports = function(spec) {
   spec.struct = spec.struct || 'Not Specified'
 
   return {
-    Write: Transaction('write'),
-    Read: Transaction('read'),
-    Delete: Transaction('delete')
+    Writeable: Type('write'),
+    Readable: Type('read'),
+    Removeable: Type('remove')
   };
 
   /**
-   * Creates an execution context with the transaction type.
+   * Creates an execution context with the Type type.
    * @param  {[type]} desc [description]
    * @return {[type]}      [description]
    */
-  function Transaction(desc) {
+  function Type(desc) {
 
     return function(data) {
       var transaction = {};
+          transaction.time = Date.now();
           transaction.type = desc;
-
+          
+      // Esnure transaction has defaults.
       data = data || {};
-      
-      // Copy any data options into the transaction
-      for(var obj in data) {
-        transaction[obj] = data[obj];
-      }
+      data.success = data.success || {};
+      data.error = data.error || {};
+
+      transaction.success = data.success;
+      transaction.error = data.error;
 
       // Copy spec reference into transaction.
       // Abstract this into a lib.
@@ -40,16 +42,7 @@ module.exports = function(spec) {
         transaction[key] = spec[key];
       }
 
-      return {
-        success: function(msg) {
-          transaction.success = msg || 'Transaction Successful';
-          return transaction;
-        },
-        error: function(msg) {
-          transaction.error = msg || 'An error occured';
-          return transaction;
-        }
-      };
+      return transaction;
     };
   }
 };

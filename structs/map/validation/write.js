@@ -1,43 +1,57 @@
 'use strict';
 
-var q = require('q');
-
 /***********************************************************************************************************************************************
  *  MAP WRITE VALIDATION
  ***********************************************************************************************************************************************
  * @description
  */
-
-// Left to right composistion
-var validators = [readonly];
-
 module.exports = function(store)  {
 
-  return function(data) {
-    var def = q.defer(),
-        comp;
+  return function(src) {
+    var validators = [readonly];
+        src.data = src.data || {};
+        src.options = src.options || {};
 
-    // Set up reduce
-    validators.unshift(start(data));
+    // Set up reduce - this ensure our data will be passed
+    // to the first validator function available
+    validators.unshift(start(src));
+
     // Run chain
-    comp = validators.reduce(function(prev, curr) {
-      console.log('PREV: ', prev, 'CURR:', curr)
+    return validators.reduce(function(prev, curr) {
       return curr(prev());
     });
-
-    console.log('COMP: ', comp)
-
-    return def.promise;
   };
-};
 
-function start(data) {
-  return function() {
-    return data;
+  /**
+   * This sets up the validation chain with the right structure/values
+   * @param  {[type]} spec [description]
+   * @return {[type]}      [description]
+   */
+  function start(spec) {
+    return function() {
+      return {passed: spec.data, failed: {}, options: spec.options};
+    };
   }
-}
 
-function readonly(spec) {
-  console.log('FROM READ ONLY', spec);
-  return spec;
-}
+  //
+  // VALIDATORS
+  //------------------------------------------------------------------------------------------//
+  // @description
+  
+  /**
+   * READONLY
+   * @param  {[type]} spec [description]
+   * @return {[type]}      [description]
+   */
+  function readonly(spec) {
+    for(var key in spec.passed) {
+      // console.log('READONLY: ', key, store, store.data[key], store.meta)
+      if(store.data[key] && (store.options[key] && store.options[key].readonly && !spec.options.force)) {
+        spec.failed[key] = spec.passed[key];
+        delete spec.passed[key];
+      }
+    }
+
+    return spec;
+  }
+};

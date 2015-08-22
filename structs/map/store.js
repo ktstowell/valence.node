@@ -6,15 +6,31 @@
  * @description
  */
 module.exports = function() {
-  var Store = Object.create({write: write, read: read, remove: remove});
-      Store.meta = {};
-      Store.data = {};
+  this.data = {};
+  this.options = {};
 
-  return Store;
+  this.write = write.bind(this);
+  this.read = read.bind(this);
+  this.remove = remove.bind(this);
+
+  return this;
 };
 
 function write(spec) {
+  spec = spec || {};
+  spec.data = spec.data || {};
+  spec.options = spec.options || {};
 
+  for(var key in spec.data) {
+    this.data[key] = spec.data[key];
+    this.options[key] = this.options[key] || {};
+
+    for(var option in spec.options) {
+      this.options[key][option] = spec.options[option];
+    }
+  }
+
+  return spec;
 }
 
 function read(spec) {

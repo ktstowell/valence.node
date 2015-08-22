@@ -4,7 +4,7 @@
   "description": "Valence data framework for node.js applications.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vows --spec"
   },
   "repository": {
     "type": "git",
@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/ktstowell/valence.node",
   "devDependencies": {
-    "q": "^1.4.1"
+    "assert": "^1.3.0",
+    "q": "^1.4.1",
+    "vows": "^0.8.1"
   }
 }
