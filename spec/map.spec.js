@@ -31,9 +31,9 @@ suite
       topic: function() {
         return (new Valence.Structs.Map()({foo:'bar'}).set());
       },
-      'We should see a transaction object with: "success: {data: {foo:bar}}"': function(err, data) {
+      'We should see a transaction object with: "success: {foo:bar}"': function(err, data) {
         assert.equal(err, null);
-        assert.equal(data.success.data.foo, 'bar');
+        assert.equal(data.success.foo, 'bar');
       }
     },
     'When writing "{foo:bar}" to a map as "readonly"': {
@@ -47,9 +47,9 @@ suite
         topic: function(map) {
           return map({foo:'baz'}).set();
         },
-        'We should see a transaction object with {error: {data: {foo:bar}}}': function(err, data) {
+        'We should see a transaction object with {error: {foo:bar}}': function(err, data) {
           assert.equal(err, null);
-          assert.equal(data.error.data.foo, 'baz');
+          assert.equal(data.error.foo, 'baz');
         }
       }
     },
@@ -64,9 +64,71 @@ suite
         topic: function(map) {
           return map({bang:'baz'}).set({force: true});
         },
-        'We should see a transaction object with {success: {data: {foo:baz}}}': function(err, data) {
+        'We should see a transaction object with {success: {{foo:baz}}': function(err, data) {
           assert.equal(err, null);
-          assert.equal(data.success.data.bang, 'baz');
+          assert.equal(data.success.bang, 'baz');
+        }
+      }
+    }
+  })
+  .addBatch({
+    'Given we have a map that contains {foo:bar}': {
+      topic: function() {
+        var map = new Valence.Structs.Map(),
+            foo = map({foo:'bar'}).set();
+        return map;
+      },
+      'Requesting those values should yeild a transaction with success: {foo: bar}': function(map) {
+        var query = map('foo').get();
+
+        assert.notEqual(null, query);
+        assert.notEqual(undefined, query);
+        assert.equal('bar', query.success.foo.value);
+      }
+    },
+    'Given we have a map that contains {foo:bar} that is "hidden"': {
+      topic: function() {
+        var map = new Valence.Structs.Map(),
+            foo = map({foo:'bar'}).set({hidden: true});
+        return map;
+      },
+      'Requesting those values should yeild a transaction with error: {foo: {value: null, hidden: true}}': function(map) {
+        var query = map('foo').get();
+        assert.notEqual(null, query);
+        assert.notEqual(undefined, query);
+        assert.equal(null, query.error.foo.value);
+        assert.equal(true, query.error.foo.hidden);
+      }
+    },
+    'Given we have a map that contains multiple key value pairs': {
+      topic: function() {
+        var map = new Valence.Structs.Map(),
+            foo = map({foo:'bar', bar: 'baz', baz: 'bang'}).set();
+
+        return map;
+      },
+      'I should be able to query for multiple values at a time using ["foo", "bar"]': function(map) {
+        var query = map(['foo', 'bar']).get();
+        
+        assert.notEqual(null, query);
+        assert.notEqual(undefined, query);
+        assert.notEqual(undefined, query.success.foo.value);
+        assert.notEqual(undefined, query.success.bar.value);
+      }
+    },
+    'Given we have a map with a nested object': {
+      topic: function() {
+        var map = new Valence.Structs.Map(),
+            foo = map({foo: {bar: {baz: 'bang'}, foo: 'bar', baz: 'bang'}}).set();
+
+        return map;
+      },
+      'And a query for a value using "{all:true}"': {
+        topic: function(map) {
+          return map(['foo', 'baz', 'wat']).get({all: true});
+        },
+        'I should see a result telling me the value of the returned keys and where they are located': function(query) {
+          console.log(query)
         }
       }
     }

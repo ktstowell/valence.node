@@ -27,14 +27,18 @@ module.exports = function(spec) {
       var transaction = {};
           transaction.time = Date.now();
           transaction.type = desc;
-          
+
       // Esnure transaction has defaults.
       data = data || {};
-      data.success = data.success || {};
-      data.error = data.error || {};
 
-      transaction.success = data.success;
-      transaction.error = data.error;
+      // Add anything rpovided
+      for(var key in data) {
+        transaction[key] = data[key];
+      }
+
+      // Ensure error and success are present
+      transaction.success = transaction.success || null;
+      transaction.error = transaction.error || null;
 
       // Copy spec reference into transaction.
       // Abstract this into a lib.

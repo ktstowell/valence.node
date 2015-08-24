@@ -38,7 +38,14 @@ module.exports = function(spec) {
   // @description
   
   function get(spec) {
+    var query = store.read(spec);
+    var validated = validation.readable(query);
 
+    return new Transaction.Readable({
+      options: spec.options,
+      success: validated.passed,
+      error: validated.failed
+    });
   }
 
   /**
@@ -51,11 +58,17 @@ module.exports = function(spec) {
     var validated = validation.writeable(spec); // returns {passed, failed}
     
     return new Transaction.Writeable({
-      success: store.write({data: validated.passed, options: spec.options}),
-      error: {data: validated.failed, options: spec.options}
+      options: spec.options,
+      success: store.write({data: validated.passed, options: spec.options}).data,
+      error: validated.failed
     });
   }
 
+  /**
+   * [remove description]
+   * @param  {[type]} spec [description]
+   * @return {[type]}      [description]
+   */
   function remove(spec) {
 
   }
