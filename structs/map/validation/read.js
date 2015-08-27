@@ -20,7 +20,6 @@ module.exports = function(store) {
 
     // Run validation composition
     return validators.reduce(function(prev, curr) {
-      console.log(prev, curr)
       return curr(prev());
     });
   }
@@ -36,8 +35,12 @@ module.exports = function(store) {
     }
   }
 
+  /**
+   * [exists description]
+   * @param  {[type]} spec [description]
+   * @return {[type]}      [description]
+   */
   function exists(spec) {
-    console.log(spec)
     for(var key in spec.passed) {
       if(spec.passed[key].constructor === Object && !spec.passed[key].value) {
         spec.passed[key].value = null;

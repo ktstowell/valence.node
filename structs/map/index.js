@@ -38,8 +38,7 @@ module.exports = function(spec) {
   // @description
   
   function get(spec) {
-    var query = store.read(spec);
-    var validated = validation.readable(query);
+    var validated = validation.readable(store.read(spec));
 
     return new Transaction.Readable({
       options: spec.options,
