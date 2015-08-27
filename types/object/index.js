@@ -18,7 +18,7 @@ module.exports = function() {
 
     var API = {
       add: function(opts) { return add.call(obj, data, opts); },
-      remove: function(opts) { return remove.call(obj, data, opts); },
+      remove: function(key) { return remove.call(obj, key); },
       clean: function(opts) { return clean.call(obj, data, opts); }
     };
 

@@ -34,6 +34,7 @@ suite.addBatch({
       assert.notEqual(null, Obj);
       assert.notEqual(undefined, Obj);
       assert.notEqual(undefined, Obj.foo);
+      assert.equal('bar', Obj.foo);
     }
   },
   'When removing properties from an object': {

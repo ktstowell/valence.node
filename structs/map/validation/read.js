@@ -3,7 +3,8 @@
 /***********************************************************************************************************************************************
  * MAP READ VALIDATION
  ***********************************************************************************************************************************************
- * @description
+ * @TODO: Validation works but is extremely inefficient as it is O(n^2) to run on a single key. Clean it up
+ *        so that it runs onces and abstracts the conditionals away. 
  */
 module.exports = function(store) {
 
@@ -12,7 +13,8 @@ module.exports = function(store) {
    * @param  {[type]} src [description]
    * @return {[type]}     [description]
    */
-  return function(src) {
+  function validate(src) {
+    console.log('VALIDATION: ', src)
     var validators = [start(src), exists, hidden];
         src = src || {};
         src.data = src.data || {};
@@ -41,12 +43,10 @@ module.exports = function(store) {
    * @return {[type]}      [description]
    */
   function exists(spec) {
+    var msg = 'No record found in Map.';
+
     for(var key in spec.passed) {
-      if(spec.passed[key].constructor === Object && !spec.passed[key].value) {
-        spec.passed[key].value = null;
-        spec.failed[key] = spec.passed[key];
-        delete spec.passed[key];
-      }
+      exists[spec.passed[key].constructor](key, spec, msg);
     }
 
     return function() {
@@ -54,32 +54,64 @@ module.exports = function(store) {
     };
   }
 
+  exists[Array] = function(key, spec, msg) {
+    spec.passed[key] = spec.passed[key].filter(function(itm) {
+      console.log(itm)
+      return itm.path && itm.value;
+    });
+
+    spec.failed[key] = spec.passed[key].filter(function(itm) {
+      return !itm.value;
+    }).forEach(function(itm) {
+      itm.value = null; itm.failure = msg
+    });
+  };
+
+  exists[Object] = function(key, spec, msg) {
+    if(spec.passed[key].path && !spec.passed[key].value) {
+      spec.failed[key] = spec.passed[key];
+      spec.failed[key].value = null;
+      spec.failed[key].failure = msg;
+      delete spec.passed[key];
+    }
+  };
+
   /**
    * [hidden description]
    * @param  {[type]} spec [description]
    * @return {[type]}      [description]
    */
   function hidden(spec) {
-    console.log(spec)
+    var msg = 'Item cannot be accessed. Please use {force:true} for visibility';
+    console.log('SPEC FROM EXISTS: ', spec)
+    console.log(store.options)
     for(var key in spec.passed) {
-      if(spec.passed[key].constructor === Array) {
-        spec.passed[key].forEach(function(obj) {
-          console.log('ARRAY IN HIDDEN: ', obj)
-          if(store.options[obj.path] && store.options[obj.path].hidden & !spec.options.force) {
-            spec.failed[key] = spec.passed[key];
-            spec.failed[key].value = null;
-            spec.failed[key].hidden = true;
-            delete spec.passed[key];
-          }
-        });
-      } else if(store.options[spec.passed[key].path] && store.options[spec.passed[key].path].hidden & !spec.options.force) {
-        spec.failed[key] = spec.passed[key];
-        spec.failed[key].value = null;
-        spec.failed[key].hidden = true;
-        delete spec.passed[key];
-      }
+      hidden[spec.passed[key].constructor](key, spec, msg);
     }
 
     return spec;
   }
+
+  hidden[Array] = function(key, spec, msg) {
+    spec.passed[key] = spec.passed[key].filter(function(itm) {
+      return !store.options[itm.path] || !store.options[itm.path].hidden;
+    });
+
+    spec.failed[key] = spec.passed[key].filter(function(itm) {
+      return store.options[itm.path]  && store.options[itm.path].hidden;
+    }).forEach(function(itm) {
+      itm.value = null; itm.failure = msg
+    });
+  };
+
+  hidden[Object] = function(key, spec, msg) {
+    if(store.options[spec.passed[key].path] && store.options[spec.passed[key].path].hidden) {
+      spec.failed[key] = spec.passed[key];
+      spec.failed[key].value = null;
+      spec.failed[key].failure = msg;
+      delete spec.passed[key];
+    }
+  };
+
+  return validate;
 };

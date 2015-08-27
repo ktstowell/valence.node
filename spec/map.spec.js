@@ -88,16 +88,16 @@ suite
     },
     'Given we have a map that contains {foo:bar} that is "hidden"': {
       topic: function() {
-        var map = new Valence.Structs.Map(),
-            foo = map({foo:'bar'}).set({hidden: true});
+        var map = new Valence.Structs.Map();
+            map({foo:'bar'}).set({hidden: true});
         return map;
       },
       'Requesting those values should yeild a transaction with error: {foo: {value: null, hidden: true}}': function(map) {
         var query = map('foo').get();
+        
         assert.notEqual(null, query);
         assert.notEqual(undefined, query);
         assert.equal(null, query.error.foo.value);
-        assert.equal(true, query.error.foo.hidden);
       }
     },
     'Given we have a map that contains multiple key value pairs': {
@@ -108,8 +108,8 @@ suite
         return map;
       },
       'I should be able to query for multiple values at a time using ["foo", "bar"]': function(map) {
-        var query = map(['foo', 'bar']).get();
-        
+        var query = map(['foo', 'bar', 'wat']).get();
+        console.log('ONE:', query)
         assert.notEqual(null, query);
         assert.notEqual(undefined, query);
         assert.notEqual(undefined, query.success.foo.value);
@@ -119,16 +119,19 @@ suite
     'Given we have a map with a nested object': {
       topic: function() {
         var map = new Valence.Structs.Map(),
-            foo = map({foo: {bar: {baz: 'bang'}, foo: 'bar', baz: 'bang'}}).set();
-
+            foo = map({foo: {bar: {baz: 'berng'}, foo: 'bar', baz: 'bang'}}).set();
+            
         return map;
       },
-      'And a query for a value using "{all:true}"': {
+      'And query for a value using "{all:true}"': {
         topic: function(map) {
           return map(['foo', 'baz', 'wat']).get({all: true});
         },
         'I should see a result telling me the value of the returned keys and where they are located': function(query) {
-          console.log(query)
+          console.log('OHAI', query)
+          for(var key in query.success) {
+            console.log(key, query.success[key]);
+          }
         }
       }
     }
