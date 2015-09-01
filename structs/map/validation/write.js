@@ -8,7 +8,7 @@
 module.exports = function(store)  {
 
   return function(src) {
-    var validators = [start(src), readonly];
+    var validators = [start(src), type, readonly];
         src.data = src.data || {};
         src.options = src.options || {};
 
@@ -25,15 +25,36 @@ module.exports = function(store)  {
    */
   function start(spec) {
     return function() {
-      return {passed: spec.data, failed: {}, options: spec.options};
+      return {passed: spec.keys, failed: {}, options: spec.options, type: spec.type};
     };
   }
 
   //
-  // VALIDATORS
+  // HELPERS
   //------------------------------------------------------------------------------------------//
   // @description
   
+  function fail(key, spec, msg) {
+    spec.failed[key] = spec.passed[key];
+    spec.failed[key].message = msg;
+    delete spec.passed[key];
+  }
+  
+  // VALIDATORS
+  //------------------------------------------------------------------------------------------//
+  // @description
+  function type(spec) {
+    for(var key in spec.passed) {
+      if(spec.passed[key].constructor !== spec.type) {
+        fail(key, spec, 'Invalid type.');
+      }
+    }
+
+    return function() {
+      return spec;
+    };
+  }
+
   /**
    * READONLY - retrofit for recursion
    * @param  {[type]} spec [description]

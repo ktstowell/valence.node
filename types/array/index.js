@@ -77,11 +77,11 @@ module.exports = function() {
   }
 
   remove[Array] = function(data) {
-    console.log(this)
+    
   };
 
   remove[Object] = function(data) {
-    console.log(this)
+    
   };
 
   remove['primitive'] = function(data) {

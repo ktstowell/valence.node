@@ -11,6 +11,10 @@ var Validation = require('./validation');
  */
 module.exports = function(spec) {
 
+  if(!spec || spec && !spec.type) {
+    throw new Error('Valence - Map: please instantiate your map with a type. e,g String, Number or Object');
+  }
+
   // Create instances
   var store = new Store();
   var validation = Validation(store);
@@ -19,11 +23,16 @@ module.exports = function(spec) {
   // MAP STATE MACHINE
   //------------------------------------------------------------------------------------------//
   // @description
-  var Map = function(state) {
+  var Map = function(key) {
+
+    if(!key) {
+      throw new Error('Valence - Map: key not provided');
+    }
+
     return {
-      get: function(opts) { return get(normalize(state, opts)); },
-      set: function(opts) { return set(normalize(state, opts)); },
-      remove: function(opts) { return remove(normalize(state, opts)); }
+      get: function(opts) { return get(normalize(key, null, opts, spec.type)); },
+      set: function(val, opts) { return set(normalize(key, val, opts, spec.type)); },
+      remove: function(opts) { return remove(normalize(key, null opts, spec.type)); }
     };
   };
   
@@ -75,8 +84,9 @@ module.exports = function(spec) {
   //
   // NORMALIZATION
   //------------------------------------------------------------------------------------------//
-  // @description
-  function normalize(state, options) {
-    return {data: (state = state || {}), options: (options = options || {})};
+  // @description Normalizes state variables into a map for further use.
+  //              At this point, key and type have been validated
+  function normalize(key, val, options, type) {
+    return {keys: (key.constructor === Array? key : [key]), val: val, options: (options || {}), type: type};
   }
 };

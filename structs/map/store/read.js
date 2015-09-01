@@ -39,7 +39,6 @@ module.exports = function(store) {
         path = '';
 
     (function inner(obj, key) {
-      console.log(path)
       for(var prop in obj) {
         if(prop === key) {
           path += prop;

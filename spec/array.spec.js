@@ -17,7 +17,7 @@ suite
         return new Valence.Types.Array();
       },
       'We should be provided an interface': function(arr) {
-        console.log(arr, arr.constructor);
+        
       }
     },
     'When Adding some data to an array': {
@@ -25,7 +25,7 @@ suite
         return new (Valence.Types.Array('foo')).add();
       },
       'We should see our primitive': function(arr) {
-        console.log('IN TEST', arr)
+        
         assert.notEqual(null, arr);
         assert.notEqual(undefined, arr);
         assert.notEqual(0, arr.length);
