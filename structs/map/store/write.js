@@ -12,16 +12,25 @@ module.exports = function(store) {
    * @return {[type]}      [description]
    */
   return function write(spec) {
-    // Validation - TODO: consolidate into partial or something
-    spec = spec || {};
-    spec.data = spec.data || {};
-    spec.options = spec.options || {};
+    var block = {};
 
-    for(var key in spec.data) {
-      store.data[key] = spec.data[key];
-      store.options[key] = spec.options[key];
+    if(!spec || spec && (!spec.value || !spec.data)) {
+      throw new Error('Valence - Map: could not write to map. Insufficient data provided.');
     }
 
-    return spec;
+    // Create a write-block that gets returned
+    // and prepares data for being written to the store.
+    spec.data.forEach(function(key) {
+      block[key] = spec.value;
+    });
+
+    // Write data and options to "permanent"
+    // memory structure
+    for(var key in block) {
+      store.data[key] = block[key];
+      store.options[key] = spec.options;
+    }
+
+    return block;
   };
 };

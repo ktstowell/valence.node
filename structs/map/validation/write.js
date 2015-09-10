@@ -25,7 +25,7 @@ module.exports = function(store)  {
    */
   function start(spec) {
     return function() {
-      return {passed: spec.keys, failed: {}, options: spec.options, type: spec.type};
+      return {passed: spec.keys, failed: {}, options: spec.options, type: spec.type, value: spec.value};
     };
   }
 
@@ -34,20 +34,25 @@ module.exports = function(store)  {
   //------------------------------------------------------------------------------------------//
   // @description
   
-  function fail(key, spec, msg) {
-    spec.failed[key] = spec.passed[key];
-    spec.failed[key].message = msg;
-    delete spec.passed[key];
+  function fail(key, val, spec, msg) {
+    spec.passed.splice(spec.passed.indexOf(key), 1);
+    spec.failed[key] = {error: msg, value: spec.value};
   }
-  
+
   // VALIDATORS
   //------------------------------------------------------------------------------------------//
   // @description
+  
+  /**
+   * [type description]
+   * @param  {[type]} spec [description]
+   * @return {[type]}      [description]
+   */
   function type(spec) {
-    for(var key in spec.passed) {
-      if(spec.passed[key].constructor !== spec.type) {
-        fail(key, spec, 'Invalid type.');
-      }
+    if(!spec.value || spec.value && spec.value.constructor !== spec.type) {
+      spec.passed.forEach(function(key) {
+        fail(key, spec.value, spec, ('Invalid type. Expected '+ spec.type + ', got '+ (spec.value && spec.value.constructor)));
+      });
     }
 
     return function() {
@@ -56,17 +61,15 @@ module.exports = function(store)  {
   }
 
   /**
-   * READONLY - retrofit for recursion
    * @param  {[type]} spec [description]
    * @return {[type]}      [description]
    */
   function readonly(spec) {
-    for(var key in spec.passed) {
+    spec.passed.forEach(function(key) {
       if(store.data[key] && (store.options[key] && store.options[key].readonly && !spec.options.force)) {
-        spec.failed[key] = spec.passed[key];
-        delete spec.passed[key];
+        fail(key, null, spec, ('Requested value is readonly. Use {force: true} to override.'));
       }
-    }
+    });
 
     return spec;
   }

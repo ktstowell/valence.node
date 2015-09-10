@@ -32,7 +32,7 @@ module.exports = function(spec) {
     return {
       get: function(opts) { return get(normalize(key, null, opts, spec.type)); },
       set: function(val, opts) { return set(normalize(key, val, opts, spec.type)); },
-      remove: function(opts) { return remove(normalize(key, null opts, spec.type)); }
+      remove: function(opts) { return remove(normalize(key, null, opts, spec.type)); }
     };
   };
   
@@ -67,7 +67,7 @@ module.exports = function(spec) {
     
     return new Transaction.Writeable({
       options: spec.options,
-      success: store.write({data: validated.passed, options: spec.options}).data,
+      success: store.write({data: validated.passed, options: spec.options, value: spec.value}),
       error: validated.failed
     });
   }
@@ -78,7 +78,13 @@ module.exports = function(spec) {
    * @return {[type]}      [description]
    */
   function remove(spec) {
+    var validated = validation.removeable(spec);
 
+    return new Transaction.Removeable({
+      options: spec.options,
+      success: store.remove({data: validated.passed, options: spec.options}),
+      error: validated.error
+    });
   }
 
   //
@@ -87,6 +93,6 @@ module.exports = function(spec) {
   // @description Normalizes state variables into a map for further use.
   //              At this point, key and type have been validated
   function normalize(key, val, options, type) {
-    return {keys: (key.constructor === Array? key : [key]), val: val, options: (options || {}), type: type};
+    return {keys: (key.constructor === Array? key : [key]), value: val, options: (options || {}), type: type};
   }
 };
