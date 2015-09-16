@@ -68,7 +68,7 @@ suite
       topic: function() {
         var map = (new Valence.Structs.Map({type: String})('foo'));
 
-        map.set('bar', {readonly: true});
+        map.set('bar', {mutable: false});
 
         return map;
       },
@@ -86,7 +86,7 @@ suite
       topic: function() {
         var map = (new Valence.Structs.Map({type: String})('foo'));
 
-        map.set('bar', {readonly: true});
+        map.set('bar', {mutable: false});
 
         return map;
       },
@@ -184,14 +184,14 @@ suite
         topic: function(map) {
           return {map: map,  transaction: map('foo').remove()};
         },
-        'I should a success object with foo': function(data) {
+        'I should see a success object with foo': function(data) {
           assert.notEqual(undefined, data.transaction);
           assert.equal(data.transaction.success.foo, 'bar');
         },
-        'And when I query for "foo"': {
-          topic: function(data) {
-            console.log(data)
-          }
+        'And when I query for "foo" i should see a transaction object with {error: {foo: {}}}': function(data) {
+          var query = data.map('foo').get();
+
+          assert.notEqual(query.error.foo, undefined);
         }
       }
     }

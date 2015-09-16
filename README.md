@@ -37,13 +37,13 @@ foo.get();
 //   error: {},
 //   struct: 'Map' }
 
-// Write some readonly values to the map
-map('bar').set('bang', {readonly: true});
+// Write some immutable values to the map
+map('bar').set('bang', {mutable: false});
 
 // returns a Valence.Transactions.Writeable object
 // { time: 1440700348332,
 //  type: 'write',
-//  options: {readonly: true},
+//  options: {mutable: false},
 //  success: { bar: 'bang' },
 //  error: {},
 //  struct: 'Map' }

@@ -8,7 +8,7 @@
 module.exports = function(store)  {
 
   return function(src) {
-    var validators = [start(src), type, readonly];
+    var validators = [start(src), type, mutable];
         src.data = src.data || {};
         src.options = src.options || {};
 
@@ -64,10 +64,10 @@ module.exports = function(store)  {
    * @param  {[type]} spec [description]
    * @return {[type]}      [description]
    */
-  function readonly(spec) {
+  function mutable(spec) {
     spec.passed.forEach(function(key) {
-      if(store.data[key] && (store.options[key] && store.options[key].readonly && !spec.options.force)) {
-        fail(key, null, spec, ('Requested value is readonly. Use {force: true} to override.'));
+      if(store.data[key] && (store.options[key] && (store.options[key].hasOwnProperty('mutable') && store.options[key].mutable === false && !spec.options.force))) {
+        fail(key, null, spec, ('Requested value is immutable. Use {force: true} to override.'));
       }
     });
 
