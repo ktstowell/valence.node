@@ -1,5 +1,5 @@
 # valence.node
-Synchronous data framework for node.js applications.
+Stateful data structures for node.js applications.
 
 ## Installation
 `npm install valence.node`
