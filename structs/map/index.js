@@ -49,7 +49,7 @@ module.exports = function(spec) {
   function get(spec) {
     var validated = validation.readable(store.read(spec));
 
-    return new Transaction.Readable({
+    return new Transaction.readable({
       options: spec.options,
       success: validated.passed,
       error: validated.failed
@@ -65,7 +65,7 @@ module.exports = function(spec) {
   function set(spec) {
     var validated = validation.writeable(spec); // returns {passed, failed}
     
-    return new Transaction.Writeable({
+    return new Transaction.writeable({
       options: spec.options,
       success: store.write({data: validated.passed, options: spec.options, value: spec.value}),
       error: validated.failed
@@ -80,7 +80,7 @@ module.exports = function(spec) {
   function remove(spec) {
     var validated = validation.removeable(spec);
 
-    return new Transaction.Removeable({
+    return new Transaction.removeable({
       options: spec.options,
       success: store.remove({data: validated.passed, options: spec.options}),
       error: validated.error

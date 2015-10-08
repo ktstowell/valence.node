@@ -11,13 +11,13 @@ module.exports = function(spec) {
   spec.struct = spec.struct || 'Not Specified'
 
   return {
-    Writeable: Type('write'),
-    Readable: Type('read'),
-    Removeable: Type('remove')
+    writeable: Type('write'),
+    readable: Type('read'),
+    removeable: Type('remove')
   };
 
   /**
-   * Creates an execution context with the Type type.
+   * Creates an execution context with the type.
    * @param  {[type]} desc [description]
    * @return {[type]}      [description]
    */
