@@ -7,15 +7,9 @@
  */
 module.exports = function(store)  {
 
-  return function(src) {
-    var validators = [start(src), type, mutable];
-        src.data = src.data || {};
-        src.options = src.options || {};
-
-    // Run chain
-    return validators.reduce(function(prev, curr) {
-      return curr(prev());
-    });
+  return {
+    first: normalize,
+    validators: [type, mutable]
   }
 
   /**
@@ -23,7 +17,7 @@ module.exports = function(store)  {
    * @param  {[type]} spec [description]
    * @return {[type]}      [description]
    */
-  function start(spec) {
+  function normalize(spec) {
     return function() {
       return {passed: spec.keys, failed: {}, options: spec.options, type: spec.type, value: spec.value};
     };
@@ -55,9 +49,7 @@ module.exports = function(store)  {
       });
     }
 
-    return function() {
-      return spec;
-    };
+    return function() { return spec; }
   }
 
   /**
@@ -71,6 +63,6 @@ module.exports = function(store)  {
       }
     });
 
-    return spec;
+    return function() { return spec; }
   }
 };

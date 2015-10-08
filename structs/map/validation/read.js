@@ -8,20 +8,10 @@
  */
 module.exports = function(store) {
 
-  /**
-   * [description]
-   * @param  {[type]} src [description]
-   * @return {[type]}     [description]
-   */
-  function validate(src) {
-    var validators = [start(src), exists, hidden];
-
-
-    // Run validation composition
-    return validators.reduce(function(prev, curr) {
-      return curr(prev());
-    });
-  }
+  return {
+    first: normalize,
+    validators: [exists, hidden]
+  };
 
   //
   // VALIDATION INIT AND HELPERS
@@ -33,7 +23,7 @@ module.exports = function(store) {
    * @param  {[type]} spec [description]
    * @return {[type]}      [description]
    */
-  function start(spec) {
+  function normalize(spec) {
     return function() {
       return {passed: (spec.results || {}), failed: {}, keys: spec.keys, options: spec.options};
     }
@@ -64,9 +54,7 @@ module.exports = function(store) {
       fail(key, null, spec, 'Key not found in store');
     });
 
-    return function() {
-      return spec;
-    }
+    return function() { return spec; }
   }
 
   /**
@@ -82,8 +70,6 @@ module.exports = function(store) {
       }
     }
 
-    return spec;
+    return function() { return spec; }
   }
-
-  return validate;
 };
