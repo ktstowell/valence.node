@@ -16,9 +16,12 @@
     "url": "https://github.com/ktstowell/valence.node/issues"
   },
   "homepage": "https://github.com/ktstowell/valence.node",
+  "dependencies": {
+    "q": "^1.4.1",
+    "valence.transactions": "file:transactions"
+  },
   "devDependencies": {
     "assert": "^1.3.0",
-    "q": "^1.4.1",
     "vows": "^0.8.1"
   }
 }

@@ -1,4 +1,8 @@
 'use strict';
+console.log(__dirname+'/../../');
+var resolve = require('resolve');
+var t = resolve.sync('transactions', {baseDir: __dirname+'/../../'});
+console.log(t, __dirname);
 
 var Transaction = require('../../transactions')({struct: 'Map'});
 var Store = require('./store');
